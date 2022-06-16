@@ -1,1 +1,3 @@
 venv/
+sms/__pycache__/
+sms/.mypy_cache/
