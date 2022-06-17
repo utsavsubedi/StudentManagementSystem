@@ -1,11 +1,8 @@
 from typing import Optional
-import os
-
 import typer
-
 from sms import SUCCESS, __app_name__, __version__, config,  ERROR, database
 from sms.config import Config
-from sms.sms import authenticate, display_records
+from sms.sms import authenticate, display_records, create_record
 
 app = typer.Typer()
 
@@ -28,9 +25,6 @@ def main(
 ) -> None:
     return
 
-@app.command()
-def greeting(name:str) -> str:
-    print(f"Hello {name}!")
 
 @app.command()
 def init(
@@ -95,10 +89,60 @@ def login():
 @app.command()
 def read():
     all_data = display_records()
+    if len(all_data) == 0:
+        typer.secho(
+            "Currently there are no records. Please add some to display.",
+            fg =  typer.colors.RED
+        )
+        raise typer.Exit(1)
+
+    headers = [ key for key, value in all_data[0].items() ]
+    headers = '       |'.join(headers)
+    headers = headers.replace('email', 'email'+' '*15)
     typer.secho(
-        f"{all_data}"
+        headers, fg =  typer.colors.RED
     )
+    for data in all_data:
+        string = ''
+        for key, values in data.items():
+            total_length = len(key)+7
+            if key == 'email':
+                total_length = total_length +15
+            side_length = int((total_length - len(values)))
+            string += values+(side_length*' ')+'|'
+        typer.secho(
+            string,
+            fg=typer.colors.BLUE
+        )
+    # typer.secho(
+    #     f"{all_data}"
+    # )
     raise typer.Exit(1)
 
 
-        
+@app.command()
+def registration():
+    username = typer.prompt("username")
+    password = typer.prompt("Create a password ", hide_input=True, confirmation_prompt=True)
+    name = typer.prompt("Enter your name: ")
+    email = typer.prompt("Enter a valid email")
+    location = typer.prompt("Enter your current address")
+    creation_status = create_record(
+        username = username,
+        password = password,
+        name = name,
+        email = email,
+        location = location
+    )
+    if creation_status != SUCCESS:
+        typer.secho(
+            f"Error while creating new record: {ERROR[creation_status]}",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    typer.secho(
+        "Your registration was successful. Please use the username and password to authenticate. \
+        \n command: python -m sms login",
+        fg = typer.colors.GREEN
+    )
+    raise typer.Exit(1)

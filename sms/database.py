@@ -1,6 +1,7 @@
 import configparser, os
 from pathlib import Path
 import json
+from sms.lib.session import Session
 
 import typer 
 from sms import DB_WRITE_ERROR, DB_READ_ERROR, DIR_ERROR, FILE_ERROR, SUCCESS, __app_name__
@@ -42,16 +43,20 @@ class Database:
             return FILE_ERROR
         return SUCCESS
 
-    def create_record(self, **kwargs):
-        new_record = dict()
-        status = os.environ.get('user_status')
-        for item in kwargs:
-            new_record[item] = kwargs[item]
-        with self.db_path.open('r') as old_records:
-            data = old_records.read()
-            data[status].append(new_record) 
-            with self.db_path.open('w') as updated_record:
-                updated_record.write(data)
+    def create_record(self, *args, **kwargs):
+        try:
+            new_record = dict()
+            status = 'students'
+            for key, value in args[0].items():
+                new_record[key] = value
+            with self.db_path.open('r') as old_records:
+                data = json.loads(old_records.read())
+                data[status].append(new_record) 
+                with self.db_path.open('w') as updated_record:
+                    updated_record.write(json.dumps(data, indent=4))
+            return SUCCESS
+        except OSError:
+            return DB_WRITE_ERROR
         
     def get_all_data(self):
         try:

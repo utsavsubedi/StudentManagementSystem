@@ -1,12 +1,15 @@
-from sms import SUCCESS, DOESNOT_EXIST_ERROR,DB_READ_ERROR
+from sms import SUCCESS, DOESNOT_EXIST_ERROR
 from sms.config import Config
 from functools import wraps
 from sms.database import Database
 import typer
-from sms.lib.session import Session, SESSION_PATH 
+from sms.lib.session import Session
 
 DATABASE_PATH = Config().get_database_path()
-ALL_DATA = Database(DATABASE_PATH).get_all_data()
+try:
+    ALL_DATA = Database(DATABASE_PATH).get_all_data()
+except:
+    pass
 
 def admin_check(original_function):
     # @wraps
@@ -51,3 +54,7 @@ def authenticate(status, username, password):
 def display_records():
     return ALL_DATA["students"]        
 
+def create_record(**kwargs):
+    database = Database(DATABASE_PATH)
+    creation_status = database.create_record(kwargs)
+    return creation_status
