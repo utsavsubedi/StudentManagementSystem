@@ -1,3 +1,5 @@
 venv/
 sms/__pycache__/
 sms/.mypy_cache/
+sms/temp.py
+sms/lib/__pycache__/
