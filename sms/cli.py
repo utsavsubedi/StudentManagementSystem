@@ -2,8 +2,9 @@ from typing import Optional
 
 import typer
 
-from sms import __app_name__, __version__, config,  ERROR, database
+from sms import SUCCESS, __app_name__, __version__, config,  ERROR, database
 from sms.config import Config
+from sms.sms import authenticate
 
 app = typer.Typer()
 
@@ -63,12 +64,30 @@ def init(
         fg = typer.colors.GREEN
     )
     
+
 @app.command()
 def admin_login():
     username = typer.prompt("Username: ")
     password = typer.prompt("Password: ", hide_input=True, confirmation_prompt=True)
-    typer.secho(
-        f"username: {username}, password: {password}",
-        fg = typer.colors.GREEN
-    )
-    typer.Exit(1)
+    auth_status = authenticate('admin',username, password)
+    if auth_status != SUCCESS:
+        typer.secho(
+            f"Auth Failed: {ERROR[auth_status]}",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    else:
+        typer.secho(
+            "authentication successful.",
+            fg = typer.colors.GREEN
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def test():
+    config = Config()
+    db_path = config.get_cfg_field('General','database')
+    print(db_path)
+
+        

@@ -9,8 +9,9 @@ __version__ = '0.0.1'
     DB_WRITE_ERROR, 
     JSON_ERROR, 
     FILE_ERROR,
-    DOESNOT_EXIST_ERROR
-) = range(8)
+    DOESNOT_EXIST_ERROR,
+    RETRIVAL_ERROR
+) = range(9)
 
 ERROR = {
     DIR_ERROR: "config directory error",
@@ -19,6 +20,7 @@ ERROR = {
     DB_WRITE_ERROR: "Database write error",
     JSON_ERROR: "Json Error",
     FILE_ERROR: "File creation error.",
-    DOESNOT_EXIST_ERROR: "The entered record doesnot exist in database."
+    DOESNOT_EXIST_ERROR: "The entered record doesnot exist in database.",
+    RETRIVAL_ERROR: "The entered data doesnot exist."
 }
 

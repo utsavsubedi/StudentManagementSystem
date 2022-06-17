@@ -1,4 +1,4 @@
-import configparser
+import configparser, os
 from pathlib import Path
 import json
 
@@ -9,9 +9,15 @@ DEFAULT_DATABASE_FOLDER = Path(typer.get_app_dir(__app_name__)).joinpath('databa
 DEFAULT_DATABASE_PATH = Path(DEFAULT_DATABASE_FOLDER, str(__app_name__)+'_database.json')
 
 class Database:
-    def __init__(self):
-        self.db_path = None
-        self.db_folder = None
+    def __init__(self, db_path: str = None):
+        if db_path:
+            self.db_path = Path(db_path)
+        else:
+            self.db_path = None
+        if self.db_path:
+            self.db_folder = self.db_path.parent
+        else:
+            self.db_folder = None
 
     def create_database(self, db_folder: str):
         self.db_path = Path(f"{db_folder}").joinpath('sms_db.json')
@@ -35,3 +41,23 @@ class Database:
         except OSError:
             return FILE_ERROR
         return SUCCESS
+
+    def create_record(self, **kwargs):
+        new_record = dict()
+        status = os.environ.get('user_status')
+        for item in kwargs:
+            new_record[item] = kwargs[item]
+        with self.db_path.open('r') as old_records:
+            data = old_records.read()
+            data[status].append(new_record) 
+            with self.db_path.open('w') as updated_record:
+                updated_record.write(data)
+        
+    def get_all_data(self):
+        try:
+            with self.db_path.open('r') as db_file:
+                data = db_file.read()
+                data = json.loads(data)
+                return data 
+        except OSError:
+            return DB_READ_ERROR
