@@ -1,10 +1,11 @@
 from typing import Optional
+import os
 
 import typer
 
 from sms import SUCCESS, __app_name__, __version__, config,  ERROR, database
 from sms.config import Config
-from sms.sms import authenticate
+from sms.sms import authenticate, display_records
 
 app = typer.Typer()
 
@@ -66,10 +67,17 @@ def init(
     
 
 @app.command()
-def admin_login():
+def login():
+    status = typer.prompt("student or admin ? ")
+    if status != 'student' and status != 'admin':
+        typer.secho(
+            "Invalid choice selected, please try again.",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
     username = typer.prompt("Username: ")
     password = typer.prompt("Password: ", hide_input=True, confirmation_prompt=True)
-    auth_status = authenticate('admin',username, password)
+    auth_status = authenticate(status,username, password)
     if auth_status != SUCCESS:
         typer.secho(
             f"Auth Failed: {ERROR[auth_status]}",
@@ -85,9 +93,12 @@ def admin_login():
 
 
 @app.command()
-def test():
-    config = Config()
-    db_path = config.get_cfg_field('General','database')
-    print(db_path)
+def read():
+    all_data = display_records()
+    typer.secho(
+        f"{all_data}"
+    )
+    raise typer.Exit(1)
+
 
         
