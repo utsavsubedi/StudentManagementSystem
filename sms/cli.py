@@ -2,7 +2,8 @@ from typing import Optional
 
 import typer
 
-from sms import __app_name__, __version__, config, database, ERROR
+from sms import __app_name__, __version__, config,  ERROR, database
+from sms.config import Config
 
 app = typer.Typer()
 
@@ -41,14 +42,15 @@ def init(
     ) ) -> None:
     # init config file 
     print("db_path: ", db_path)
-    db_create_error = database.create_databse(db_path)
+    db_obj = database.Database()
+    db_create_error = db_obj.create_database(db_folder=db_path)
     if db_create_error:
         typer.secho(
             f"Error while initializing database file: {ERROR[db_create_error]}",
             fg = typer.colors.RED
         )
         raise typer.Exit(1)
-    app_init_error = config.init_app(db_path)
+    app_init_error = Config().create_init_config(db_path)
     if app_init_error:
         typer.secho(
             f"Config file initialization error: {ERROR[app_init_error]}",
@@ -61,3 +63,12 @@ def init(
         fg = typer.colors.GREEN
     )
     
+@app.command()
+def admin_login():
+    username = typer.prompt("Username: ")
+    password = typer.prompt("Password: ", hide_input=True, confirmation_prompt=True)
+    typer.secho(
+        f"username: {username}, password: {password}",
+        fg = typer.colors.GREEN
+    )
+    typer.Exit(1)

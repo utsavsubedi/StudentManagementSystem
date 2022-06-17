@@ -8,8 +8,9 @@ __version__ = '0.0.1'
     DB_READ_ERROR,
     DB_WRITE_ERROR, 
     JSON_ERROR, 
-    FILE_ERROR
-) = range(7)
+    FILE_ERROR,
+    DOESNOT_EXIST_ERROR
+) = range(8)
 
 ERROR = {
     DIR_ERROR: "config directory error",
@@ -17,6 +18,7 @@ ERROR = {
     DB_READ_ERROR: "Database read error",
     DB_WRITE_ERROR: "Database write error",
     JSON_ERROR: "Json Error",
-    FILE_ERROR: "config file error"
+    FILE_ERROR: "File creation error.",
+    DOESNOT_EXIST_ERROR: "The entered record doesnot exist in database."
 }
 
