@@ -13,7 +13,7 @@ CONFIG_PATH = CONFIG_FOLDER.joinpath(CONFIG_FOLDER, 'config.ini')
 
 def _init_configfile() -> int:
     try:
-        CONFIG_FOLDER.makedir(exist_ok=True)
+        CONFIG_FOLDER.mkdir(parents=True,exist_ok=True)
     except OSError:
         return DIR_ERROR
     try:
@@ -22,7 +22,7 @@ def _init_configfile() -> int:
         return FILE_ERROR
     return SUCCESS
 
-def _create_database(db_path) -> int:
+def _create_config(db_path) -> int:
     cfg_file = configparser.ConfigParser()
     cfg_file['General'] = {'database':db_path}
     try:
@@ -36,7 +36,7 @@ def init_app(db_path:str) -> int:
     init_cfg = _init_configfile()
     if init_cfg != SUCCESS:
         return init_cfg
-    database_create = _create_database(db_path)
+    database_create = _create_config(db_path)
     if database_create != SUCCESS:
         return database_create
     return SUCCESS
