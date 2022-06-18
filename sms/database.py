@@ -1,7 +1,6 @@
-import configparser, os
 from pathlib import Path
 import json
-from sms.lib.session import Session
+from sms.lib.security import Security
 
 import typer 
 from sms import DB_WRITE_ERROR, DB_READ_ERROR, DIR_ERROR, FILE_ERROR, SUCCESS, __app_name__
@@ -30,11 +29,14 @@ class Database:
         except OSError:
             return FILE_ERROR
         try:
+            default_pass = "admin"
+            enc_pass, enc_key = Security().encrypt(default_pass)
             with self.db_path.open('w') as db_file:
                 data = {
                     "admin": {
                         "username": "admin",
-                        "password": "admin"
+                        "password": enc_pass,
+                        "key": enc_key
                     },
                     "students": list()
                 }
@@ -48,6 +50,9 @@ class Database:
             new_record = dict()
             status = 'students'
             for key, value in args[0].items():
+                if key == 'password':
+                    value, enc_key = Security().encrypt(value)
+                    new_record["key"] = enc_key
                 new_record[key] = value
             with self.db_path.open('r') as old_records:
                 data = json.loads(old_records.read())

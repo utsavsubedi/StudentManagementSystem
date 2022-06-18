@@ -95,19 +95,42 @@ def read():
             fg =  typer.colors.RED
         )
         raise typer.Exit(1)
-
-    headers = [ key for key, value in all_data[0].items() ]
+    try:
+        headers = [ key for key, value in all_data[0].items() ]
+    except:
+        headers = [ key for key, value in all_data.items() ]
     headers = '       |'.join(headers)
-    headers = headers.replace('email', 'email'+' '*15)
+    headers = headers.replace('email', 'email'+' '*15)+'       |'
     typer.secho(
         headers, fg =  typer.colors.RED
     )
-    for data in all_data:
+    try:
+        for data in all_data:
+            string = ''
+            for key, values in data.items():
+                total_length = len(key)+7
+                if key == 'email':
+                    total_length = total_length +15
+                if len(values) > total_length:
+                    values = values[:total_length-3]+'...'
+                    string += values+'|'
+                    continue
+                side_length = int((total_length - len(values)))
+                string += values+(side_length*' ')+'|'
+            typer.secho(
+                string,
+                fg=typer.colors.BLUE
+            )
+    except:
         string = ''
-        for key, values in data.items():
+        for key, values in all_data.items():
             total_length = len(key)+7
             if key == 'email':
                 total_length = total_length +15
+            if len(values) > total_length:
+                values = values[:total_length-3]+'...'
+                string += values+'|'
+                continue
             side_length = int((total_length - len(values)))
             string += values+(side_length*' ')+'|'
         typer.secho(

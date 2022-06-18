@@ -12,7 +12,7 @@ class Session:
         self.password = None
         self.status = None
         self.session_path = SESSION_PATH
-        self.key = None
+        self.key = Fernet.generate_key()
 
     def create_session(self):
         try:
@@ -42,10 +42,17 @@ class Session:
             status = self.decrypt(session['status'])
             return status
 
+    def get_current_user_info(self):
+        with self.session_path.open('r') as session_file:
+            session = json.loads(session_file.read())
+            status = self.decrypt(session['status'])
+            username = self.decrypt(session['username'])
+            password = self.decrypt(session['password'])
+            return username, status, password
+
         
 
     def encrypt(self, message):
-        self.key =  Fernet.generate_key()
         fernet = Fernet(self.key)
         encoded = fernet.encrypt(message.encode())
         return encoded.decode("utf-8")

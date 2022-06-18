@@ -3,6 +3,7 @@ from sms.config import Config
 from functools import wraps
 from sms.database import Database
 import typer
+from sms.lib.security import Security
 from sms.lib.session import Session
 
 DATABASE_PATH = Config().get_database_path()
@@ -15,7 +16,7 @@ def admin_check(original_function):
     # @wraps
     def wrapper(*args, **kwargs):
         session = Session()
-        status = session.get_current_user_status()
+        username, status, password = session.get_current_user_info()
         if status == 'admin':
             return original_function(*args, **kwargs)
         else:
@@ -33,28 +34,44 @@ def authenticate(status, username, password):
     session.username = username
     session.password = password
     session.status = status
+    security = Security()
     if status == 'admin':
-        if username == ALL_DATA['admin']['username'] and password == ALL_DATA['admin']['password']:
+        dec_password = security.decrypt(ALL_DATA['admin']['password'],ALL_DATA['admin']['key'])
+        if username == ALL_DATA['admin']['username'] and password == dec_password:
             # os.environ['sms_admin'] = "True"
             session.create_session()
             return SUCCESS
         else:
             return DOESNOT_EXIST_ERROR
-    if status == 'students':
+    if status == 'student':
         for record in ALL_DATA['students']:
             if username == record['username']:
-                if password == record['password']:
+                dec_password = security.decrypt(record['password'],record['key'])
+                if password == dec_password:
                     # os.environ['sms_admin'] = "False"
                     session.create_session()
                     return SUCCESS
         return DOESNOT_EXIST_ERROR
     return DOESNOT_EXIST_ERROR
         
-@admin_check
 def display_records():
-    return ALL_DATA["students"]        
+    session = Session()
+    username, status, password = session.get_current_user_info()
+    if status == 'admin':
+        for student in  ALL_DATA["students"]:
+            del student["key"]
+        return ALL_DATA["students"] 
+    elif status == 'student':
+        security = Security()
+        for record in ALL_DATA['students']:
+            if username == record['username']:
+                dec_password = security.decrypt(record['password'],record['key'])
+                if password == dec_password:
+                    return record
+
 
 def create_record(**kwargs):
     database = Database(DATABASE_PATH)
     creation_status = database.create_record(kwargs)
     return creation_status
+
