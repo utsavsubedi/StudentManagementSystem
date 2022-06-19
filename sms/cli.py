@@ -1,9 +1,9 @@
 from typing import Optional
 import typer
 from sms import LOGIN_ERROR, SUCCESS, __app_name__, __version__, config, \
-     ERROR, database, DOESNOT_EXIST_ERROR, DB_UPDATE_ERROR
+     ERROR, database, DOESNOT_EXIST_ERROR, DB_UPDATE_ERROR, ADMIN_DELETE_ERROR
 from sms.config import Config
-from sms.sms import create_record
+from sms.sms import create_record, delete_record
 from sms.lib.security import Security
 from sms.sms import authenticate, display_records, update_record, get_record_by_username
 
@@ -92,7 +92,14 @@ def login():
 @app.command()
 def read():
     all_data = display_records()
-    if len(all_data) == 0:
+    try:
+        if len(all_data) == 0:
+            typer.secho(
+                "Currently there are no records. Please add some to display.",
+                fg =  typer.colors.RED
+            )
+            raise typer.Exit(1)
+    except:
         typer.secho(
             "Currently there are no records. Please add some to display.",
             fg =  typer.colors.RED
@@ -100,8 +107,7 @@ def read():
         raise typer.Exit(1)
     try:
         headers = [ key for key, value in all_data[0].items() ]
-        headers.remove('key')
-    except:
+    except Exception as e:
         headers = [ key for key, value in all_data.items() ]
         headers.remove('key')
     headers = '       |'.join(headers)
@@ -229,5 +235,41 @@ def update():
         "Record updated successfully. ",
         fg=typer.colors.GREEN
     )
+    raise typer.Exit(1)
 
+@app.command()
+def delete():
+    username = typer.prompt("Enter the username that you want to edit ")
+    record, status = get_record_by_username(username)
+    if record == DOESNOT_EXIST_ERROR:
+        typer.secho(
+            f"Please enter a valid username: {ERROR[DOESNOT_EXIST_ERROR]}",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    if record == LOGIN_ERROR:
+        typer.secho(
+            f"Error in data fetch. {ERROR[LOGIN_ERROR]}",
+            fg= typer.colors.RED
+        )
+        raise typer.Exit(1) 
+
+    delete_status = delete_record(record, status)
+    if delete_status == ADMIN_DELETE_ERROR:
+        typer.secho(
+            f"Error on delete: {ERROR[ADMIN_DELETE_ERROR]}.",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    elif delete_status != SUCCESS:
+        typer.secho(
+            f"Error on delete: {ERROR[DB_UPDATE_ERROR]}. Make sure you are logined with admin or corresponding user credentials.",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
     
+    typer.secho(
+        "Record deleted successfully. ",
+        fg=typer.colors.GREEN
+    )
+    raise typer.Exit(1)

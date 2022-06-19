@@ -1,4 +1,4 @@
-from sms import DB_UPDATE_ERROR, LOGIN_ERROR, SUCCESS, DOESNOT_EXIST_ERROR
+from sms import DB_UPDATE_ERROR, LOGIN_ERROR, SUCCESS, DOESNOT_EXIST_ERROR, ADMIN_DELETE_ERROR
 from sms.config import Config
 from functools import wraps
 from sms.database import Database
@@ -84,11 +84,12 @@ def get_record_by_username(username):
     if status == "admin":
         try:
             data = ALL_DATA["admin"][username]
-            return data, "admin"
+            return data, None
         except:
             for record in ALL_DATA["students"]:
-                if record['username']  == session_user and session_user==username:
+                if record['username']  == username:
                     return record, "students"
+            return DOESNOT_EXIST_ERROR, None
     elif status == "student":
         for record in ALL_DATA["students"]:
                 if record['username'] == session_user and session_user==username:
@@ -108,6 +109,19 @@ def update_record(old_record, new_record, status):
             ALL_DATA["students"].append(new_record)
             update_status = Database(DATABASE_PATH).update_database(ALL_DATA)
             return update_status
+        else:
+            return DB_UPDATE_ERROR
+    except:
+        return DB_UPDATE_ERROR
+
+def delete_record(record, status):
+    try:
+        if status == "admin":
+            return ADMIN_DELETE_ERROR
+        elif status == "students":
+            ALL_DATA["students"].remove(record)
+            delete_status = Database(DATABASE_PATH).update_database(ALL_DATA)
+            return delete_status
         else:
             return DB_UPDATE_ERROR
     except:

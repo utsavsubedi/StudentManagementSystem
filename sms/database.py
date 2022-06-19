@@ -72,7 +72,6 @@ class Database:
             print(e)
             return DB_UPDATE_ERROR
         return SUCCESS
-
         
     def get_all_data(self):
         try:

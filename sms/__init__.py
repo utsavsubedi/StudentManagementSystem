@@ -12,8 +12,9 @@ __version__ = '0.0.1'
     FILE_ERROR,
     DOESNOT_EXIST_ERROR,
     RETRIVAL_ERROR,
-    LOGIN_ERROR
-) = range(11)
+    LOGIN_ERROR,
+    ADMIN_DELETE_ERROR
+) = range(12)
 
 ERROR = {
     DIR_ERROR: "config directory error",
@@ -25,6 +26,7 @@ ERROR = {
     DOESNOT_EXIST_ERROR: "The entered record doesnot exist in database.",
     RETRIVAL_ERROR: "The entered data doesnot exist.",
     DB_UPDATE_ERROR: "There was a error while updating record.",
-    LOGIN_ERROR: "YOur must be logged in to continue this operation."
+    LOGIN_ERROR: "You must be logged in to continue this operation.",
+    ADMIN_DELETE_ERROR: "Admin data cannot be deleted."
 }
 
