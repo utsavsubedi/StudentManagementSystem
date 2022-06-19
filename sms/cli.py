@@ -1,8 +1,11 @@
 from typing import Optional
 import typer
-from sms import SUCCESS, __app_name__, __version__, config,  ERROR, database
+from sms import LOGIN_ERROR, SUCCESS, __app_name__, __version__, config, \
+     ERROR, database, DOESNOT_EXIST_ERROR, DB_UPDATE_ERROR
 from sms.config import Config
-from sms.sms import authenticate, display_records, create_record
+from sms.sms import create_record
+from sms.lib.security import Security
+from sms.sms import authenticate, display_records, update_record, get_record_by_username
 
 app = typer.Typer()
 
@@ -97,8 +100,10 @@ def read():
         raise typer.Exit(1)
     try:
         headers = [ key for key, value in all_data[0].items() ]
+        headers.remove('key')
     except:
         headers = [ key for key, value in all_data.items() ]
+        headers.remove('key')
     headers = '       |'.join(headers)
     headers = headers.replace('email', 'email'+' '*15)+'       |'
     typer.secho(
@@ -109,6 +114,8 @@ def read():
             string = ''
             for key, values in data.items():
                 total_length = len(key)+7
+                if key == 'key':
+                    continue
                 if key == 'email':
                     total_length = total_length +15
                 if len(values) > total_length:
@@ -125,6 +132,8 @@ def read():
         string = ''
         for key, values in all_data.items():
             total_length = len(key)+7
+            if key == 'key':
+                continue
             if key == 'email':
                 total_length = total_length +15
             if len(values) > total_length:
@@ -169,3 +178,56 @@ def registration():
         fg = typer.colors.GREEN
     )
     raise typer.Exit(1)
+
+
+@app.command()
+def update():
+    username = typer.prompt("Enter the username that you want to edit ")
+    record, status = get_record_by_username(username)
+    if record == DOESNOT_EXIST_ERROR:
+        typer.secho(
+            f"Please enter a valid username: {ERROR[DOESNOT_EXIST_ERROR]}",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    if record == LOGIN_ERROR:
+        typer.secho(
+            f"Error in data fetch. {ERROR[LOGIN_ERROR]}",
+            fg= typer.colors.RED
+        )
+        raise typer.Exit(1)
+    new_record = dict()
+    typer.secho(
+        "Please enter the fields you want to update and leave blank to store previous data.",
+        fg = typer.colors.RED
+    )
+    for key in record:
+        if key == "key":
+            continue
+        if key == "password":
+            new_record[key] = typer.prompt(f"Enter new {key}", hide_input=True, confirmation_prompt=True, default="")
+            if new_record[key] == '' or new_record[key] == None:
+                new_record[key] = record[key]
+                new_record["key"] = record["key"]
+            else:
+                new_record[key], enc_key = Security().encrypt(new_record[key])
+                new_record["key"] = enc_key
+            continue
+        new_record[key] = typer.prompt(f"Enter new {key}", default="")
+        if new_record[key] == '' or new_record[key] == None:
+                new_record[key] = record[key]
+    
+    updata_status = update_record(record, new_record, status)
+    if updata_status != SUCCESS:
+        typer.secho(
+            f"Error on update: {ERROR[DB_UPDATE_ERROR]}. Make sure you are logined with admin or corresponding user credentials.",
+            fg = typer.colors.RED
+        )
+        raise typer.Exit(1)
+    
+    typer.secho(
+        "Record updated successfully. ",
+        fg=typer.colors.GREEN
+    )
+
+    

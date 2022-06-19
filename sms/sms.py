@@ -1,4 +1,4 @@
-from sms import SUCCESS, DOESNOT_EXIST_ERROR
+from sms import DB_UPDATE_ERROR, LOGIN_ERROR, SUCCESS, DOESNOT_EXIST_ERROR
 from sms.config import Config
 from functools import wraps
 from sms.database import Database
@@ -75,3 +75,40 @@ def create_record(**kwargs):
     creation_status = database.create_record(kwargs)
     return creation_status
 
+def get_record_by_username(username):
+    try:
+        session = Session()
+        session_user, status, password = session.get_current_user_info()
+    except:
+        return LOGIN_ERROR, None
+    if status == "admin":
+        try:
+            data = ALL_DATA["admin"][username]
+            return data, "admin"
+        except:
+            for record in ALL_DATA["students"]:
+                if record['username']  == session_user and session_user==username:
+                    return record, "students"
+    elif status == "student":
+        for record in ALL_DATA["students"]:
+                if record['username'] == session_user and session_user==username:
+                    return record, "students"
+        return DOESNOT_EXIST_ERROR, None
+    else:
+        return DOESNOT_EXIST_ERROR, None
+
+def update_record(old_record, new_record, status):
+    try:
+        if status == "admin":
+            ALL_DATA["admin"]  = new_record
+            update_status = Database(DATABASE_PATH).update_database(ALL_DATA)
+            return update_status
+        elif status == "students":
+            ALL_DATA["students"].remove(old_record)
+            ALL_DATA["students"].append(new_record)
+            update_status = Database(DATABASE_PATH).update_database(ALL_DATA)
+            return update_status
+        else:
+            return DB_UPDATE_ERROR
+    except:
+        return DB_UPDATE_ERROR

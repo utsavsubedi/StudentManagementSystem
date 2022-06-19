@@ -1,9 +1,10 @@
 from pathlib import Path
 import json
+from sms.config import Config
 from sms.lib.security import Security
 
 import typer 
-from sms import DB_WRITE_ERROR, DB_READ_ERROR, DIR_ERROR, FILE_ERROR, SUCCESS, __app_name__
+from sms import DB_UPDATE_ERROR, DB_WRITE_ERROR, DB_READ_ERROR, DIR_ERROR, FILE_ERROR, SUCCESS, __app_name__
 
 DEFAULT_DATABASE_FOLDER = Path(typer.get_app_dir(__app_name__)).joinpath('database')
 DEFAULT_DATABASE_PATH = Path(DEFAULT_DATABASE_FOLDER, str(__app_name__)+'_database.json')
@@ -62,6 +63,16 @@ class Database:
             return SUCCESS
         except OSError:
             return DB_WRITE_ERROR
+
+    def update_database(self, new_record):
+        try:
+            with  self.db_path.open('w') as db_file:
+                db_file.write(json.dumps(new_record, indent=4))
+        except Exception as e:
+            print(e)
+            return DB_UPDATE_ERROR
+        return SUCCESS
+
         
     def get_all_data(self):
         try:
