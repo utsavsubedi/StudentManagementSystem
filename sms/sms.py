@@ -12,6 +12,7 @@ try:
 except:
     pass
 
+# decorator to check if current user is admin
 def admin_check(original_function):
     # @wraps
     def wrapper(*args, **kwargs):

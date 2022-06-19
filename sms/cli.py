@@ -1,11 +1,12 @@
 from typing import Optional
 import typer
-from sms import LOGIN_ERROR, SUCCESS, __app_name__, __version__, config, \
+from sms import EMAIL_ERROR, LOGIN_ERROR, SUCCESS, __app_name__, __version__, config, \
      ERROR, database, DOESNOT_EXIST_ERROR, DB_UPDATE_ERROR, ADMIN_DELETE_ERROR
 from sms.config import Config
 from sms.sms import create_record, delete_record
 from sms.lib.security import Security
 from sms.sms import authenticate, display_records, update_record, get_record_by_username
+from sms.lib.Email import send_email
 
 app = typer.Typer()
 
@@ -178,8 +179,15 @@ def registration():
             fg = typer.colors.RED
         )
         raise typer.Exit(1)
+    email_status = send_email(email, name)
+    if email_status != SUCCESS:
+        typer.secho(
+            f"Error: {ERROR[EMAIL_ERROR]}",
+            fg= typer.colors.RED
+        )
+        raise typer.Exit(1)
     typer.secho(
-        "Your registration was successful. Please use the username and password to authenticate. \
+        "Your registration was successful. Check email for confirmation and use the username and password to authenticate. \
         \n command: python -m sms login",
         fg = typer.colors.GREEN
     )
