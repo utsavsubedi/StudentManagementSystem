@@ -71,3 +71,9 @@ $ python -m sms -v
 ```
 Displays current version of the application.
 
+### My References:
+- https://realpython.com/python-typer-cli/
+- https://typer.tiangolo.com/
+- https://docs.python.org/3/library/smtplib.html
+
+
