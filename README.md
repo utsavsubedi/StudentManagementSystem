@@ -16,6 +16,11 @@ Install project dependencies:
 $ pip install -r requirements.txt
 ```
 
+#### Set up your enviroment
+create a .env file with in project directory for sending registration confimation mail as:
+EMAIL_USER=*your gmail*
+EMAIL_PASS=*your app pass/pass for gmail*
+
 ### Commands 
 
 #### 1. To initialize the application 
