@@ -14,8 +14,9 @@ __version__ = '0.0.1'
     RETRIVAL_ERROR,
     LOGIN_ERROR,
     ADMIN_DELETE_ERROR,
-    EMAIL_ERROR
-) = range(13)
+    EMAIL_ERROR,
+    SESSION_DELETE_ERROR
+) = range(14)
 
 ERROR = {
     DIR_ERROR: "config directory error",
@@ -29,6 +30,8 @@ ERROR = {
     DB_UPDATE_ERROR: "There was a error while updating record.",
     LOGIN_ERROR: "You must be logged in to continue this operation.",
     ADMIN_DELETE_ERROR: "Admin data cannot be deleted.",
-    EMAIL_ERROR: "There was a error in sending email, please make sure you have .env file with EMAIL_USER(your email address) and EMAIL_PASS(your email/app pass). And make sure you entered a valid email address"
+    EMAIL_ERROR: "There was a error in sending email, please make sure you have .env file with EMAIL_USER(your email address) and EMAIL_PASS(your email/app pass). And make sure you entered a valid email address",
+    SESSION_DELETE_ERROR: "There was an error while removing current session."
+
 }
 

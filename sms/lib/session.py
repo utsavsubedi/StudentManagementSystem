@@ -1,4 +1,4 @@
-from sms import __app_name__
+from sms import SESSION_DELETE_ERROR, SUCCESS, __app_name__
 import typer
 from pathlib import Path
 import json
@@ -65,3 +65,11 @@ class Session:
             self.key = bytes(session_file["key"], 'utf-8')
         fernet = Fernet(self.key)
         return fernet.decrypt(message).decode()
+
+    def destroy_session(self):
+        try:
+            self.session_path.unlink()
+            return SUCCESS
+        except:
+            return SESSION_DELETE_ERROR
+        

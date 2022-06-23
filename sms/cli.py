@@ -1,9 +1,10 @@
 from typing import Optional
 import typer
-from sms import EMAIL_ERROR, LOGIN_ERROR, SUCCESS, __app_name__, __version__, config, \
+from sms import EMAIL_ERROR, LOGIN_ERROR, SESSION_DELETE_ERROR, SUCCESS, __app_name__, __version__, config, \
      ERROR, database, DOESNOT_EXIST_ERROR, DB_UPDATE_ERROR, ADMIN_DELETE_ERROR
 from sms.config import Config
-from sms.sms import create_record, delete_record
+from sms.lib.session import Session
+from sms.sms import create_record, delete_record, logout_user
 from sms.lib.security import Security
 from sms.sms import authenticate, display_records, update_record, get_record_by_username
 from sms.lib.Email import send_email
@@ -281,3 +282,23 @@ def delete():
         fg=typer.colors.GREEN
     )
     raise typer.Exit(1)
+
+
+@app.command()
+def logout():
+    confirmation = typer.confirm("Are you sure you want to logout?")
+    if confirmation:
+        session_status = logout_user()
+        if session_status != SUCCESS:
+            typer.secho(
+                f"Error: {ERROR[SESSION_DELETE_ERROR]}",
+                fg = typer.colors.RED
+            )
+            raise typer.Exit(1)
+        typer.secho(
+            "You have been logged out of the system."
+        )
+        typer.Exit(1)
+    else:
+        typer.secho("Aborting operation")
+        raise typer.Abort()

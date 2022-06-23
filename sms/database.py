@@ -81,3 +81,5 @@ class Database:
                 return data 
         except OSError:
             return DB_READ_ERROR
+
+            

@@ -1,10 +1,14 @@
-from sms import DB_UPDATE_ERROR, LOGIN_ERROR, SUCCESS, DOESNOT_EXIST_ERROR, ADMIN_DELETE_ERROR
+from textwrap import wrap
+from sms import DB_UPDATE_ERROR, LOGIN_ERROR, SESSION_DELETE_ERROR, SUCCESS, DOESNOT_EXIST_ERROR, ADMIN_DELETE_ERROR
 from sms.config import Config
 from functools import wraps
 from sms.database import Database
 import typer
 from sms.lib.security import Security
 from sms.lib.session import Session
+import logging
+from sms import __app_name__
+from pathlib import Path
 
 DATABASE_PATH = Config().get_database_path()
 try:
@@ -29,6 +33,38 @@ def admin_check(original_function):
     return wrapper
 
 
+# decorator to keep log of all functions called with args and kwargs
+def user_process_log(original_function):
+
+    @wraps(original_function)
+    def wrapper(*args, **kwargs):
+        LOG_PATH = Path(typer.get_app_dir(__app_name__), 'logs')
+        if not LOG_PATH.exists():
+            LOG_PATH.mkdir(parents=True, exist_ok=True)
+        session = Session()
+        try:
+            username, _, _ = session.get_current_user_info()
+        except:
+            username = 'Anonymous'
+        LOG_FILE = LOG_PATH.joinpath(f'{username}.log')
+        if not LOG_FILE.exists():
+            LOG_FILE.touch(exist_ok=True)
+        
+        logger = logging.getLogger(__name__)
+        file_handler = logging.FileHandler(filename = LOG_FILE, mode='a+')
+        file_handler.setLevel(logging.DEBUG)
+
+        file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+        file_handler.setFormatter(file_formatter)
+
+        logger.addHandler(file_handler)
+        logger.critical(f'User: {username} called {original_function.__name__} with args: {args} and kwargs: {kwargs}')
+        return original_function(*args, **kwargs)
+
+    return wrapper
+            
+
+@user_process_log
 def authenticate(status, username, password):
     # admin login
     session = Session()
@@ -55,6 +91,8 @@ def authenticate(status, username, password):
         return DOESNOT_EXIST_ERROR
     return DOESNOT_EXIST_ERROR
         
+
+@user_process_log        
 def display_records():
     session = Session()
     username, status, password = session.get_current_user_info()
@@ -70,12 +108,13 @@ def display_records():
                 if password == dec_password:
                     return record
 
-
+@user_process_log
 def create_record(**kwargs):
     database = Database(DATABASE_PATH)
     creation_status = database.create_record(kwargs)
     return creation_status
 
+@user_process_log
 def get_record_by_username(username):
     try:
         session = Session()
@@ -99,6 +138,7 @@ def get_record_by_username(username):
     else:
         return DOESNOT_EXIST_ERROR, None
 
+@user_process_log
 def update_record(old_record, new_record, status):
     try:
         if status == "admin":
@@ -115,6 +155,7 @@ def update_record(old_record, new_record, status):
     except:
         return DB_UPDATE_ERROR
 
+@user_process_log
 def delete_record(record, status):
     try:
         if status == "admin":
@@ -127,3 +168,11 @@ def delete_record(record, status):
             return DB_UPDATE_ERROR
     except:
         return DB_UPDATE_ERROR
+
+@user_process_log
+def logout_user():
+    session = Session()
+    session_status = session.destroy_session()
+    return session_status
+
+
